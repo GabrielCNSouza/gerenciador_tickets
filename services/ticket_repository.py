@@ -176,6 +176,14 @@ class TicketRepository:
             )
         
         status_antigo = ticket.status
+
+        if status_antigo == novo_status:
+            return ResultadoAlteracaoStatus(
+                sucesso=True,
+                status_antigo=status_antigo,
+                status_novo=status_antigo
+        )
+        
         ticket.status = novo_status
         self.salvar()
 

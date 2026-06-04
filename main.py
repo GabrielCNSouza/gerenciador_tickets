@@ -1,7 +1,7 @@
 from models.ticket import Ticket
 from models.tickets_status import TicketStatus
-from services.ticket_repository import TicketRepository
 from services.ticket_service import TicketService
+from services.ticket_postgres_repository import TicketPostgresRepository
 
 
 
@@ -98,9 +98,8 @@ def alterar_status_ticket(service: TicketService) -> None:
 
 
 def main() -> None:
-    repo = TicketRepository('data/tickets.json')
-    repo.carregar()
 
+    repo = TicketPostgresRepository()
     service = TicketService(repo)
 
     while True:
