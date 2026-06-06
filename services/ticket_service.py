@@ -1,10 +1,10 @@
 from models.ticket import Ticket
 from models.tickets_status import TicketStatus
 from models.resultado_operacao import ResultadoOperacao
-from services.ticket_repository import TicketRepository
+from repositories.ticket_repository_protocol import TicketRepositoryProtocol
 
 class TicketService:
-    def __init__(self, repository: TicketRepository):
+    def __init__(self, repository: TicketRepositoryProtocol):
         self.repository = repository
     
     def criar_ticket(self, titulo: str, descricao: str) -> tuple[Ticket | None, ResultadoOperacao]:

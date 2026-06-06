@@ -1,7 +1,7 @@
 from models.ticket import Ticket
 from models.tickets_status import TicketStatus
 from services.ticket_service import TicketService
-from services.ticket_postgres_repository import TicketPostgresRepository
+from repositories.ticket_postgres_repository import TicketPostgresRepository
 
 
 
