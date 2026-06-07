@@ -69,8 +69,8 @@ class TicketService:
         return ResultadoOperacao(
             sucesso=True,
             mensagem=(
-                f'Status alterado de '
-                f'"{resultado.status_antigo.value}" para '
-                f'"{resultado.status_novo.value}".'
+                f"Status alterado de "
+                f"'{resultado.status_antigo.value}' para "
+                f"'{resultado.status_novo.value}'."
             )
         )
