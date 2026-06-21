@@ -15,3 +15,6 @@ class TicketCreate(BaseModel):
 
 class TicketUpdateStatus(BaseModel):
     status: TicketStatus
+
+class MensagemResponse(BaseModel):
+    mensagem: str

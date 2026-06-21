@@ -18,3 +18,6 @@ class TicketRepositoryProtocol(Protocol):
 
     def alterar_status(self, ticket_id: int, novo_status: TicketStatus) -> ResultadoAlteracaoStatus:
         ...
+
+    def deletar(ticket_id: int) -> bool:
+        ...

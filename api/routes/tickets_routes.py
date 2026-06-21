@@ -1,14 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
-
-from repositories.ticket_postgres_repository import TicketPostgresRepository
-from models.ticket import Ticket
+from api.dependencies import get_ticket_service
 from services.ticket_service import TicketService
-from schemas.ticket_schema import TicketCreate, TicketResponse, TicketUpdateStatus
+from models.ticket import Ticket
+from schemas.ticket_schema import TicketCreate, TicketResponse, TicketUpdateStatus, MensagemResponse
 
 
-repo = TicketPostgresRepository()
-service = TicketService(repo)
 
 router = APIRouter(
     prefix="/tickets",
@@ -25,7 +22,9 @@ def ticket_para_response(ticket:Ticket) -> TicketResponse:
 
 
 @router.get("", response_model=list[TicketResponse])
-def listar_tickets() -> list[TicketResponse]:
+def listar_tickets(
+    service: TicketService = Depends(get_ticket_service)
+    ) -> list[TicketResponse]:
     tickets = service.listar_tickets()
 
     return [ticket_para_response(ticket) for ticket in tickets]
@@ -39,7 +38,10 @@ def listar_tickets() -> list[TicketResponse]:
         }
     }
 )
-def buscar_ticket(ticket_id:int) -> TicketResponse:
+def buscar_ticket(
+    ticket_id:int,
+    service: TicketService = Depends(get_ticket_service)
+    ) -> TicketResponse:
     ticket = service.buscar_ticket_por_id(ticket_id)
 
     if not ticket:
@@ -61,7 +63,10 @@ def buscar_ticket(ticket_id:int) -> TicketResponse:
         }
     }
 )
-def criar_ticket(dados:TicketCreate) -> TicketResponse:
+def criar_ticket(
+    dados:TicketCreate,
+    service: TicketService = Depends(get_ticket_service)
+    ) -> TicketResponse:
     ticket, resultado = service.criar_ticket(
         titulo=dados.titulo,
         descricao=dados.descricao
@@ -77,7 +82,7 @@ def criar_ticket(dados:TicketCreate) -> TicketResponse:
 
 @router.patch(
     "/{ticket_id}/status",
-    response_model=dict,
+    response_model=MensagemResponse,
     responses= {
         400 : {
             "description" : "Status inválido ou alteração não permitida."
@@ -87,7 +92,11 @@ def criar_ticket(dados:TicketCreate) -> TicketResponse:
         }
     }
 )
-def alterar_status_ticket(ticket_id:int, dados:TicketUpdateStatus) -> dict:
+def alterar_status_ticket(
+    ticket_id:int,
+    dados:TicketUpdateStatus,
+    service: TicketService = Depends(get_ticket_service)
+    ) -> dict:
     resultado = service.alterar_status(
         ticket_id,
         novo_status=dados.status
@@ -105,6 +114,32 @@ def alterar_status_ticket(ticket_id:int, dados:TicketUpdateStatus) -> dict:
             detail=resultado.mensagem
         )
 
-    return {
-        "mensagem" : resultado.mensagem
+    return MensagemResponse(
+        mensagem=resultado.mensagem
+    )
+
+@router.delete(
+    "/{ticket_id}",
+    response_model=MensagemResponse,
+    responses= {
+        200 : {
+            "description" : "Ticket removido com sucesso."
+        },
+        404 : {
+            "description" : "Não foi possível encontrar o ticket."
+        }
     }
+)
+def deletar_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service)
+    ) -> MensagemResponse:
+    resultado = service.deletar(ticket_id)
+    if not resultado.sucesso:
+        raise HTTPException(
+            status_code=404,
+            detail=resultado.mensagem
+        )
+    return MensagemResponse(
+        mensagem=resultado.mensagem
+    )

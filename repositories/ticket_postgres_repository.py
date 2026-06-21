@@ -131,3 +131,16 @@ class TicketPostgresRepository:
             status_antigo=status_antigo,
             status_novo=novo_status
         )
+    
+    def deletar(self, ticket_id: int) -> bool:
+        with conectar() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                """
+                DELETE FROM tickets WHERE id = %s;
+                """,
+                (ticket_id,)
+            )
+                if not cursor.rowcount > 0:
+                    return False
+        return True

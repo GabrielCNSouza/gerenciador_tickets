@@ -1,95 +1,141 @@
 # Gerenciador de Tickets em Python
 
-Projeto criado durante a trilha de estudos de IA com Python.
+Projeto desenvolvido durante a trilha de estudos de IA com Python. O sistema nasceu como uma aplicação de terminal baseada em arquivos JSON e evoluiu para uma API REST robusta utilizando arquitetura em camadas, persistência em banco de dados PostgreSQL e documentação automática.
 
-## Objetivo
+## 🎯 Objetivo e Evolução
 
-Criar um sistema em terminal para gerenciar tickets usando Python, orientação a objetos, módulos, tipagem, validação de dados, arquitetura em camadas e persistência.
+O principal objetivo deste projeto é praticar conceitos avançados de desenvolvimento backend com Python, servindo como base preparatória para a construção de aplicações complexas e chatbots com persistência de dados. 
 
-O projeto começou salvando dados em JSON e depois evoluiu para usar PostgreSQL como banco de dados principal.
+A evolução do projeto seguiu os seguintes marcos:
+1. **Fase 1:** Sistema em terminal com persistência local em arquivos JSON.
+2. **Fase 2:** Migração da persistência para o banco de dados PostgreSQL.
+3. **Fase 3:** Transformação do sistema em uma API REST completa com FastAPI e validação de dados via Pydantic.
 
-Este projeto faz parte da preparação para as próximas fases da trilha:
+---
 
-* SQL com PostgreSQL
-* FastAPI
-* APIs com banco de dados
-* aplicações de chatbot com persistência
+## 🚀 Funcionalidades
 
-## Funcionalidades
+* **Criar tickets** com validação de dados.
+* **Listar todos os tickets** cadastrados.
+* **Buscar ticket por ID** específico.
+* **Alterar status do ticket** utilizando regras de negócio controladas.
+* **Remover tickets** do banco de dados (Exclusão).
+* **Persistência Relacional** robusta com PostgreSQL.
+* **Documentação automatizada** da API via Swagger UI e ReDoc.
 
-* Criar tickets
-* Listar tickets
-* Buscar ticket por ID
-* Alterar status do ticket
-* Persistir tickets em PostgreSQL
-* Usar `Enum` para controlar status válidos
-* Usar `Service` para regras de negócio
-* Usar `Repository` para acesso aos dados
-* Usar `.env` para guardar configurações sensíveis
-* Usar `psycopg` para conectar Python ao PostgreSQL
+---
 
-## Status disponíveis
+## 🛠️ Tecnologias e Conceitos Praticados
 
-Os tickets podem ter os seguintes status:
+* **Linguagem:** Python 3 (com Type Hints e `@dataclass`).
+* **Framework Web:** FastAPI & Uvicorn (Servidor ASGI).
+* **Validação de Dados:** Pydantic (Schemas de entrada e saída).
+* **Banco de Dados:** PostgreSQL & Driver Psycopg.
+* **Gerenciamento de Ambiente:** Python Dotenv & Ambientes Virtuais (`venv`).
+* **Boas Práticas:** Arquitetura em camadas, Isolamento de credenciais locais e Prevenção contra SQL Injection.
 
-* aberto
-* em andamento
-* fechado
+---
 
-## Estrutura do projeto
+## 📂 Estrutura do Projeto
+
+Abaixo está a organização atual do repositório, refletindo a migração completa para a estrutura de API:
 
 ```text
 gerenciador_tickets/
-├── main.py
-├── database.py
-├── requirements.txt
-├── README.md
-├── .gitignore
+├── api/
+│   ├── app.py              # Inicialização do FastAPI e configurações
+│   ├── dependencies.py     # Injeção de dependências (conexão com o banco, etc.)
+│   └── routes/             # Definição dos endpoints HTTP (Routers)
 ├── data/
-│   └── tickets.json
-├── models/
+│   └── tickets.json        # Arquivo legado mantido para fins didáticos
+├── models/                 # Modelos de domínio e Enums do sistema
 │   ├── ticket.py
 │   ├── tickets_status.py
 │   ├── resultado_operacao.py
 │   └── resultado_alteracao_status.py
-└── services/
-    ├── ticket_repository.py
-    ├── ticket_postgres_repository.py
-    └── ticket_service.py
+├── repositories/           # Camada de persistência (JSON e Postgres)
+│   ├── ticket_repository.py
+│   └── ticket_postgres_repository.py
+├── schemas/                # Schemas de validação do Pydantic para a API
+├── services/               # Camada de regras de negócio (Services)
+│   └── ticket_service.py
+├── database.py             # Configuração e inicialização do pool com o PostgreSQL
+├── .env                    # Variáveis de ambiente locais (não versionado)
+├── .gitignore              # Proteção contra envio de arquivos sensíveis
+├── requirements.txt        # Dependências do projeto
+└── README.md               # Documentação do projeto
+
 ```
 
-## Persistência de dados
+---
 
-O projeto possui dois repositórios:
+## 📐 Arquitetura e Responsabilidades
 
-### `TicketRepository`
+O projeto adota o padrão de separação rigorosa de responsabilidades em camadas:
 
-Versão baseada em JSON.
+```text
+Request (HTTP) ──> Router ──> Service ──> Repository ──> PostgreSQL
 
-Responsável por:
+```
 
-* carregar tickets de `data/tickets.json`;
-* validar estrutura do JSON;
-* salvar tickets no arquivo;
-* proteger contra perda de dados quando o JSON está inválido.
+### 🔹 1. Routers (`api/routes/`)
 
-### `TicketPostgresRepository`
+* **Responsabilidade:** Receber as requisições HTTP, expor os endpoints e retornar os códigos de status HTTP corretos (200, 201, 404, etc.).
 
-Versão baseada em PostgreSQL.
 
-Responsável por:
+* **Validação:** Utiliza os **Schemas (Pydantic)** para garantir que os dados recebidos e enviados estejam no formato correto.
 
-* listar tickets do banco;
-* buscar ticket por ID;
-* criar tickets com `INSERT`;
-* alterar status com `UPDATE`;
-* converter registros do banco em objetos `Ticket`.
 
-Atualmente, o sistema principal usa o `TicketPostgresRepository`.
 
-## Banco de dados
+### 🔹 2. Services (`services/`)
 
-O projeto usa PostgreSQL com duas tabelas principais:
+* **Responsabilidade:** Concentrar todas as regras de negócio do sistema (ex: validar se um ticket pode transitar de um status para outro).
+
+
+* **Interface:** Coordena o fluxo de dados e utiliza classes como `ResultadoOperacao` para responder de forma limpa aos Routers.
+
+
+
+### 🔹 3. Repositories (`repositories/`)
+
+* **Responsabilidade:** Isolar completamente o acesso aos dados.
+
+
+* `TicketPostgresRepository`: Responsável por executar queries SQL (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) e converter registros brutos do banco em objetos do domínio Python.
+
+
+* `TicketRepository`: Versão baseada em JSON mantida no projeto para comparação didática de persistência estruturada versus arquivos locais.
+
+
+
+
+
+### 🔹 4. Models e Enums (`models/`)
+
+* **`Ticket`:** Modelo que mapeia a entidade interna do sistema.
+
+
+* **`TicketStatus`:** `Enum` que controla rigidamente as opções de status permitidas no sistema:
+
+
+* `aberto`
+* `em andamento`
+* `fechado`
+
+
+
+---
+
+## 🗄️ Banco de Dados
+
+O projeto utiliza o PostgreSQL. O banco possui duas tabelas principais fortemente relacionadas:
+
+```text
+ticket_status (1) <─────── (N) tickets
+
+```
+
+### Script de Inicialização (DDL)
 
 ```sql
 CREATE TABLE ticket_status (
@@ -106,9 +152,12 @@ CREATE TABLE tickets (
         FOREIGN KEY (status_id)
         REFERENCES ticket_status(id)
 );
+
 ```
 
-Também foram adicionadas constraints para evitar texto vazio:
+### Constraints de Segurança de Dados
+
+Para evitar o armazenamento de dados inconsistentes, foram adicionadas regras que impedem campos contendo apenas espaços vazios:
 
 ```sql
 ALTER TABLE tickets
@@ -118,37 +167,111 @@ CHECK (length(trim(titulo)) > 0);
 ALTER TABLE tickets
 ADD CONSTRAINT chk_descricao_nao_vazia
 CHECK (length(trim(descricao)) > 0);
+
 ```
 
-## Configuração do ambiente
+---
 
-Crie e ative um ambiente virtual:
+## 🔒 Segurança e Boas Práticas
+
+* **Variáveis de Ambiente:** Credenciais de banco de dados e chaves sensíveis nunca são inseridas diretamente no código, sendo isoladas no arquivo `.env` local.
+
+
+* **Prevenção contra SQL Injection:** Todas as interações com o banco via `psycopg` utilizam **placeholders parametrizados** `%s` em vez de f-strings ou concatenação direta de texto.
+
+
+
+```python
+  # Exemplo correto utilizado no projeto:
+  cursor.execute("SELECT * FROM tickets WHERE id = %s;", (ticket_id,))
+
+```
+
+---
+
+## 🛣️ Endpoints da API
+
+### 🏥 Health Check
+
+* `GET /health` - Verifica a saúde e a conectividade da aplicação.
+
+
+
+### 🎫 Gerenciamento de Tickets
+
+* `GET /tickets` - Retorna a listagem completa de tickets cadastrados.
+
+
+* `GET /tickets/{ticket_id}` - Busca os detalhes de um ticket específico pelo ID.
+
+
+* `POST /tickets` - Cria um novo ticket no sistema.
+
+
+* **Payload esperado:**
+
+
+
+```json
+    {
+      "titulo": "Erro no login",
+      "descricao": "Usuário não consegue acessar o sistema."
+    }
+    ```
+* `PATCH /tickets/{ticket_id}/status` - Atualiza parcialmente o status de um ticket existente.
+  * **Payload esperado:**
+```json
+    {
+      "status": "em andamento"
+    }
+    ```
+* `DELETE /tickets/{ticket_id}` - Remove de forma definitiva um ticket do banco de dados.
+
+---
+
+## ⚙️ Configuração do Ambiente e Execução
+
+### 1. Criar e Ativar o Ambiente Virtual (`venv`)
+
+No diretório raiz do projeto, execute o comando correspondente ao seu sistema operacional:
 
 ```bash
+# Criação do ambiente virtual
 python -m venv .venv
+
 ```
 
-No PowerShell:
+* **No Windows (PowerShell):**
+
+```powershell
+  .\.venv\Scripts\Activate.ps1
+
+```
+
+* **No Windows (Prompt de Comando/CMD):**
+
+```cmd
+  .venv\Scripts\activate.bat
+
+```
+
+* **No Linux/macOS:**
 
 ```bash
-.\.venv\Scripts\Activate.ps1
+  source .venv/bin/activate
+
 ```
 
-Ou no Prompt de Comando:
-
-```bash
-.venv\Scripts\activate.bat
-```
-
-Instale as dependências:
+### 2. Instalar as Dependências
 
 ```bash
 pip install -r requirements.txt
+
 ```
 
-## Variáveis de ambiente
+### 3. Configurar as Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto:
+Crie um arquivo chamado `.env` na raiz do projeto (utilize o padrão abaixo):
 
 ```env
 DB_HOST=localhost
@@ -156,152 +279,47 @@ DB_PORT=5432
 DB_NAME=tickets_db
 DB_USER=postgres
 DB_PASSWORD=sua_senha_aqui
+
 ```
 
-O arquivo `.env` não deve ser enviado para o GitHub.
+> ⚠️ **Importante:** O arquivo `.env` contém dados sensíveis e está devidamente configurado no seu `.gitignore` para nunca ser enviado ao controle de versão público.
+> 
+> 
 
-O `.gitignore` deve conter:
+### 4. Executar a Aplicação
 
-```gitignore
-.env
-.venv/
-__pycache__/
-*.pyc
-```
-
-## Como executar
-
-Com o ambiente virtual ativado e o PostgreSQL configurado, execute:
+Com o ambiente virtual ativo e o servidor do PostgreSQL devidamente rodando, inicialize a API com o Uvicorn:
 
 ```bash
-python main.py
+uvicorn api.app:app --reload
+
 ```
 
-## Como usar
+---
 
-Ao iniciar o programa, será exibido um menu:
+## 📖 Documentação da API
 
-```text
---- Gerenciador de Tickets ---
+A API conta com documentação interativa nativa gerada automaticamente a partir do código do FastAPI:
 
-1. Criar ticket
-2. Listar tickets
-3. Buscar ticket por ID
-4. Alterar o status do ticket
-0. Sair
-```
+* **Swagger UI:** `http://127.0.0.1:8000/docs` (Permite testar os endpoints diretamente do navegador).
 
-Escolha uma opção digitando o número correspondente.
 
-## Organização das responsabilidades
+* **ReDoc:** `http://127.0.0.1:8000/redoc` (Documentação focada em leitura e especificação limpa).
 
-### `main.py`
 
-Responsável pela interface de terminal:
 
-* mostrar menu;
-* receber entrada do usuário;
-* converter texto digitado;
-* exibir mensagens;
-* chamar o `TicketService`.
+---
 
-### `TicketService`
+## 🎯 Próximos Passos do Aprendizado
 
-Responsável pelas regras de negócio:
+Com os objetivos da API com FastAPI concluídos, os próximos passos mapeados na trilha são:
 
-* validar criação de tickets;
-* coordenar busca e alteração de status;
-* retornar mensagens de sucesso ou erro usando `ResultadoOperacao`.
+* Implementar autenticação e controle de usuários (JWT).
 
-### `TicketPostgresRepository`
 
-Responsável pela persistência em PostgreSQL:
+* Melhorar o nível de abstração com Injeção de Dependências avançada.
 
-* executar queries SQL;
-* transformar linhas do banco em objetos `Ticket`;
-* inserir novos tickets;
-* buscar tickets por ID;
-* alterar status.
 
-### `TicketRepository`
+* Integrar o sistema de tickets com fluxos de atendimento automatizados e inteligência artificial (Chatbots com histórico estruturado).
 
-Responsável pela persistência em JSON.
 
-Mantido no projeto como versão anterior e comparação didática com o repositório PostgreSQL.
-
-### `Ticket`
-
-Modelo que representa um ticket:
-
-```python
-Ticket(
-    id=1,
-    titulo="Erro no sistema",
-    descricao="Descrição do problema",
-    status=TicketStatus.ABERTO
-)
-```
-
-### `TicketStatus`
-
-Enum que representa os status válidos:
-
-```python
-TicketStatus.ABERTO
-TicketStatus.EM_ANDAMENTO
-TicketStatus.FECHADO
-```
-
-## Segurança e boas práticas
-
-O projeto evita colocar senha diretamente no código.
-
-As credenciais do banco ficam no arquivo `.env`, que deve permanecer apenas no ambiente local.
-
-O acesso ao banco é feito com placeholders do `psycopg`, evitando montar SQL com f-string e reduzindo risco de SQL injection.
-
-Exemplo:
-
-```python
-cursor.execute(
-    "SELECT * FROM tickets WHERE id = %s;",
-    (ticket_id,)
-)
-```
-
-## Conceitos praticados
-
-* Python
-* Orientação a objetos
-* `@dataclass`
-* `Enum`
-* Type hints
-* JSON
-* PostgreSQL
-* SQL
-* `SELECT`
-* `INSERT`
-* `UPDATE`
-* `JOIN`
-* `FOREIGN KEY`
-* `CHECK`
-* `NOT NULL`
-* Repository
-* Service
-* Resultado de operação
-* Variáveis de ambiente
-* `.env`
-* `python-dotenv`
-* `psycopg`
-* Git e GitHub
-
-## Próximos passos
-
-Este projeto será usado como base para estudar:
-
-* melhorar abstração entre repositórios;
-* aprofundar SQL e PostgreSQL;
-* criar uma API com FastAPI;
-* conectar endpoints HTTP ao banco;
-* evoluir para sistemas com usuários, conversas e histórico;
-* preparar a base para chatbots com persistência.

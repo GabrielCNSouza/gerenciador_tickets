@@ -74,3 +74,15 @@ class TicketService:
                 f"'{resultado.status_novo.value}'."
             )
         )
+    
+    def deletar(self, ticket_id: int) -> ResultadoOperacao:
+        resultado = self.repository.deletar(ticket_id)
+        if not resultado:
+            return ResultadoOperacao(
+                sucesso=False,
+                mensagem="Ticket não encontrado."
+            )
+        return ResultadoOperacao(
+            sucesso=True,
+            mensagem="Ticket apagado com sucesso."
+        )
