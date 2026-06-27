@@ -37,8 +37,17 @@ class TicketService:
         )
 
 
-    def listar_tickets(self) -> list[Ticket]:
-        return self.repository.listar()
+    def listar_tickets(
+        self,
+        status: TicketStatus | None = None,
+        limit: int | None = None,
+        offset:int = 0
+    ) -> list[Ticket]:
+        return self.repository.listar(
+            status=status,
+            limit=limit,
+            offset=offset
+        )
     
 
     def buscar_ticket_por_id(self, ticket_id: int) -> Ticket | None:

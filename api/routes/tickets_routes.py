@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies import get_ticket_service
 from services.ticket_service import TicketService
-from models.ticket import Ticket
+from models.ticket import Ticket, TicketStatus
 from schemas.ticket_schema import TicketCreate, TicketResponse, TicketUpdateStatus, MensagemResponse
 
 
@@ -23,9 +23,17 @@ def ticket_para_response(ticket:Ticket) -> TicketResponse:
 
 @router.get("", response_model=list[TicketResponse])
 def listar_tickets(
+    status: TicketStatus | None = None,
+    limit: int | None = None,
+    offset: int = 0,
     service: TicketService = Depends(get_ticket_service)
-    ) -> list[TicketResponse]:
-    tickets = service.listar_tickets()
+) -> list[TicketResponse]:
+    
+    tickets = service.listar_tickets(
+        status=status,
+        limit=limit,
+        offset=offset
+    )
 
     return [ticket_para_response(ticket) for ticket in tickets]
 
@@ -41,7 +49,7 @@ def listar_tickets(
 def buscar_ticket(
     ticket_id:int,
     service: TicketService = Depends(get_ticket_service)
-    ) -> TicketResponse:
+) -> TicketResponse:
     ticket = service.buscar_ticket_por_id(ticket_id)
 
     if not ticket:
@@ -66,7 +74,7 @@ def buscar_ticket(
 def criar_ticket(
     dados:TicketCreate,
     service: TicketService = Depends(get_ticket_service)
-    ) -> TicketResponse:
+) -> TicketResponse:
     ticket, resultado = service.criar_ticket(
         titulo=dados.titulo,
         descricao=dados.descricao
@@ -96,7 +104,7 @@ def alterar_status_ticket(
     ticket_id:int,
     dados:TicketUpdateStatus,
     service: TicketService = Depends(get_ticket_service)
-    ) -> dict:
+) -> MensagemResponse:
     resultado = service.alterar_status(
         ticket_id,
         novo_status=dados.status
@@ -133,7 +141,7 @@ def alterar_status_ticket(
 def deletar_ticket(
     ticket_id: int,
     service: TicketService = Depends(get_ticket_service)
-    ) -> MensagemResponse:
+) -> MensagemResponse:
     resultado = service.deletar(ticket_id)
     if not resultado.sucesso:
         raise HTTPException(

@@ -7,7 +7,12 @@ from models.resultado_alteracao_status import ResultadoAlteracaoStatus
 
 class TicketRepositoryProtocol(Protocol):
 
-    def listar(self) -> list[Ticket]:
+    def listar(
+        self,
+        status: TicketStatus | None = None,
+        limit: int | None = None,
+        offset: int = 0
+    ) -> list[Ticket]:
         ...
 
     def buscar_por_id(self, ticket_id: int) -> Ticket | None:

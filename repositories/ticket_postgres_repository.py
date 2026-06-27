@@ -7,23 +7,52 @@ from models.resultado_alteracao_status import ResultadoAlteracaoStatus
 
 class TicketPostgresRepository:
 
-    def listar(self) -> list[Ticket]:
+    def listar(
+        self,
+        status: TicketStatus | None = None,
+        limit: int | None = None,
+        offset: int = 0
+    ) -> list[Ticket]:
         tickets = []
 
         with conectar() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT
-                        t.id,
-                        t.titulo,
-                        t.descricao,
-                        s.nome AS status
-                    FROM tickets AS t
-                    INNER JOIN ticket_status AS s
-                        ON t.status_id = s.id
-                    ORDER BY t.id;
-                """)
+                sql = """
+                SELECT
+                    t.id,
+                    t.titulo,
+                    t.descricao,
+                    s.nome AS status
+                FROM tickets AS t
+                INNER JOIN ticket_status AS s
+                    ON t.status_id = s.id
+                """
+                parametros: list[str | int] = []
+
+                if status is not None:
+                    sql += """
+                WHERE s.nome = %s
+                """
+                    parametros.append(status.value)
+                sql += """
+                ORDER BY t.id
+                """
+                if limit is not None:
+                    sql += """
+                LIMIT %s
+                """
+                    parametros.append(limit)
+                sql += """
+                OFFSET %s
+                """
+                parametros.append(offset)
+
+                cursor.execute(
+                    sql,
+                    parametros
+                )
                 linhas = cursor.fetchall()
+
                 for linha in linhas:
                     ticket = Ticket(
                         id=linha[0],
